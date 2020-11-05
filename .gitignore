@@ -1,16 +1,12 @@
-*.class
-*.log
-
-# sbt specific
-dist/*
+*.iml
+.bloop
+.DS_Store
+.env
+.idea/
+.metals
+.serverless/
+node_modules/
 target/
-lib_managed/
-src_managed/
+project/target/
 project/boot/
 project/plugins/project/
-*.iml
-.idea
-credentials.sbt
-
-# Scala-IDE specific
-.scala_dependencies

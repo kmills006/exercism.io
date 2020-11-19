@@ -1,5 +1,3 @@
-import scala.math.sqrt
-
 import NumberType.NumberType
 
 // The Greek mathematician Nicomachus devised a classification scheme for

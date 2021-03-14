@@ -1,64 +1,60 @@
 // type Maybe<T> = T | undefined;
 type StudentName = string;
-type Grade = number;
+type Grade = number | string;
 type StudentsInGrade = StudentName[];
 type StudentRoster = Map<Grade, StudentsInGrade>;
 
-interface IGradeSchool {
+type GradeSchool = {
   addStudent: (name: StudentName, grade: Grade) => void;
   studentRoster: () => StudentRoster;
   studentsInGrade: (grade: Grade) => StudentsInGrade;
-}
+};
 
-class GradeSchool implements IGradeSchool {
-  private _studentRoster: StudentRoster = new Map();
+const studentsInGrade = (roster: StudentRoster) => (
+  grade: Grade
+): StudentsInGrade => [...roster.get(grade.toString()) || []];
 
-  public addStudent(name: StudentName, grade: Grade): void {
-    const isAllowedToEnroll = this.isStudentAlreadyEnrolled(name);
+const isAlreadyEnrolled = (roster: StudentRoster) => (
+  name: StudentName
+): boolean => {
+  for (const students of roster.values()) {
+    if (students.includes(name)) {
+      return true;
+    }
+  }
 
-    if (isAllowedToEnroll) {
-      const classmates = this.studentsInGrade(grade);
-      this._studentRoster.set(grade, [...classmates, name]);
+  return false;
+};
+
+const removeFromGrade = (roster: StudentRoster) => (
+  name: StudentName
+): void => {
+  for (const [grade, students] of roster.entries()) {
+    if (students.includes(name)) {
+      roster.set(
+        grade.toString(),
+        students.filter((n) => n !== name)
+      );
+    }
+  }
+};
+
+export const gradeSchool = (
+  roster: StudentRoster = new Map()
+) => (): GradeSchool => ({
+  addStudent: (name, grade): void => {
+    const students = studentsInGrade(roster)(grade);
+
+    if (isAlreadyEnrolled(roster)(name)) {
+      removeFromGrade(roster)(name);
     }
 
-    console.log('this._studentRoster', this._studentRoster);
-  }
+    roster.set(grade.toString(), [...students, name].sort());
+  },
 
-  public studentRoster(): StudentRoster {
-    return this._studentRoster;
-  }
+  studentRoster: (): StudentRoster =>  new Map(
+    [...roster.entries()].map(([g, s]) => [g, [...s]]),
+  ),
 
-  private studentsInGrade(grade: Grade): StudentsInGrade {
-    return this._studentRoster.get(grade) || [];
-  }
-
-  private isStudentAlreadyEnrolled(name: StudentName): [Grade, StudentName] {
-    for (const grade of this._studentRoster.values()) {
-      if (grade.includes(name)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  // public studentsInGrade(grade: Grade): Students {
-  //   // return this.getStudentsInGrade(grade);
-  // }
-
-  // private getStudentsInGrade(grade: Grade): Students {
-  //   return this._studentRoster.get(grade) || [];
-  // }
-
-  // private isStudentAlreadyEnrolled(name: StudentName): boolean {
-  //   for (const value of this._studentRoster.values()) {
-  //     if (value.includes(name)) {
-  //       return true;
-  //     }
-  //   }
-
-  //   return false;
-  // }
-}
-
-export default GradeSchool;
+  studentsInGrade: studentsInGrade(roster),
+});
